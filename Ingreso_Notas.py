@@ -22,7 +22,7 @@ options.add_argument('--disable-extensions')
 options.add_argument('--disable-blink-features=AutomationControlled')
 
 driver_path = r'C:\Users\willi\Downloads\chromedriver.exe'
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options)
 
 #Inicializarla en la pantalla
 driver.set_window_position(2000, 0)
@@ -72,7 +72,7 @@ for i in range(2): #número de grupos
     A = driver.find_element(By.XPATH, "/html/body/form/table/tbody/tr[{}]/td[2]/a".format(i+2))
     A.click()
     for o in range(len(Op)):
-        driver.find_element_by_xpath("/html/body/form[2]/table[1]/tbody/tr/td[1]/select/option[{}]".format(Op[o])).click()
+        driver.find_element(By.XPATH, "/html/body/form[2]/table[1]/tbody/tr/td[1]/select/option[{}]".format(Op[o])).click()
         # Archivo con las notas
         ruta1 = r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 1s 2023\G{}\QG{}.xlsx'.format(G[i],G[i]) #Ruta archivo de notas 
         # Lista actualizada 
@@ -85,27 +85,27 @@ for i in range(2): #número de grupos
         df = df2.join(df1[E[o]]).fillna(0)
         #df.to_excel(r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 1s 2023\G{}\QG{}.xlsx'.format(G[i]))
         niter = math.ceil(len(df)/25)
-        driver.find_element_by_xpath("/html/body/form[2]/table[1]/tbody/tr/td[1]/select/option[{}]".format(Op[o])).click()
+        driver.find_element(By.XPATH, "/html/body/form[2]/table[1]/tbody/tr/td[1]/select/option[{}]".format(Op[o])).click()
         c=0
         for j in range(niter):
             for k in range(25):
                 aux=df.iloc[c,1]
-                driver.find_element_by_xpath("/html/body/form[3]/table[2]/tbody/tr[{}]/td[5]/input".format(k+2)).send_keys(str(aux))
+                driver.find_element(By.XPATH, "/html/body/form[3]/table[2]/tbody/tr[{}]/td[5]/input".format(k+2)).send_keys(str(aux))
                 if (c+1 == len(df)):
                     break
                 c+=1
-            driver.find_element_by_xpath("/html/body/form[3]/table[3]/tbody/tr/td[3]/input").click()
+            driver.find_element(By.XPATH, "/html/body/form[3]/table[3]/tbody/tr/td[3]/input").click()
             time.sleep(2)
             if j == 0:
-                driver.find_element_by_xpath("/html/body/form[3]/table[3]/tbody/tr/td[4]/a").click()
+                driver.find_element(By.XPATH, "/html/body/form[3]/table[3]/tbody/tr/td[4]/a").click()
             elif j< (niter-1):
-                driver.find_element_by_xpath("/html/body/form[3]/table[3]/tbody/tr/td[4]/a[2]").click()
+                driver.find_element(By.XPATH, "/html/body/form[3]/table[3]/tbody/tr/td[4]/a[2]").click()
             else:
                 break
         time.sleep(3)
 
-    driver.find_element_by_xpath("/html/body/table[1]/tbody/tr[2]/td[3]/a[2]").click()
-    driver.find_element_by_xpath("/html/body/table/tbody/tr[2]/td[3]/a[2]").click()
+    driver.find_element(By.XPATH, "/html/body/table[1]/tbody/tr[2]/td[3]/a[2]").click()
+    driver.find_element(By.XPATH, "/html/body/table/tbody/tr[2]/td[3]/a[2]").click()
     time.sleep(20)
     
 
