@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 import time 
 import math 
 import pandas as pd
+import numpy as np
 
 # Opciones de navegación
 
@@ -21,7 +22,7 @@ options.add_argument('--start-maximized')
 options.add_argument('--disable-extensions')
 options.add_argument('--disable-blink-features=AutomationControlled')
 
-driver_path = r'C:\Users\willi\Downloads\chromedriver.exe'
+driver_path = r'C:\Users\willi\OneDrive\Documentos\Ingreso sistema\chrome_proxy.exe'
 driver = webdriver.Chrome(options)
 
 #Inicializarla en la pantalla
@@ -35,14 +36,13 @@ for lines in arch:
     L_a.append(lines.strip())
 user_w, pas_w = L_a
 
-G =['15','21'] #Grupos a calificar en el orden que aparece la tabla de grupos en el sia
-Op = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-E = ['Q1C','Q2C','Q3C','Q4C','Q5C','A1','A2','P1','P2']
+G =['G16','G17','G23'] #Grupos a calificar en el orden que aparece la tabla de grupos en el sia
+Op = [1, 2, 3, 4]
+E = ['P1','P2','P3','Q']
 
 
-for i in range(2): #número de grupos 
-    driver.get('https://autenticasia.unal.edu.co/oam/server/obrareq.cgi?encquery%3DYaooNeilR8gyk4gcly0IOXvfQzq4SxRkDVTjscgL7yQRm4htARkuSu02ZWibFx%2B2W%2BPzsXBxZiMW%2BvmyII%2BLQXyawnSEdILwX3ySU7ykAAfnwmj8HyQZ5LW6RxM634HnfmLtuycuT4u07bjgOV%2Fj3wWosv%2FUV0Eu7eYG953QKPcdfbg0PSF%2FVJ0BZBcGTqVlEJ5OYCgAbXLwAGJ%2FTGqjiBYDyMNtVdrK8FZ0E1kooJeBRmGgOYB0KUNPh2guXziwbjdEm9I0oylUDJTNo2ZWjRrx0dCVnWyT%2BfRI8dDGhVw%3D%20agentid%3DWTUNC_AWS%20ver%3D1%20crmethod%3D2&ECID-Context=1.005vPyeCJdz6MQRMyYbe6G0000Eg0008_b%3BkXjE')
-
+for i in range(3): #número de grupos 
+    driver.get('https://autenticasia.unal.edu.co/oam/server/obrareq.cgi?encquery%3DQRxSGb8fdZA71BpVn7yvNiPQef2M%2FS9R9fwRkE2SFW3avyZ%2BP%2BToJSZmBmdxf%2Btz2FMJUL3nVlyXdbVTryUjb4vwYI8HJoRal79NXiGjWr3lJ7n5bGb27ALdIiS7cT8vLQD434NO3hbfTzLg6s4jedm7l8%2F8Oysihf1lKIswaR5RPvNMrJd4xpNIPNiO3%2FUsiY9Tl2jQ48cB7OHkrdFemMGdaN7drr%2Fg4Wqbl6%2B57qHEHgLobhsZxDJ5bh32HIJm7R%2FBI3S3%2FI8FQgYsuihpgVW9VGilqVFs9EDov0RnNQg%3D%20agentid%3DWT_UNAL_PROD%20ver%3D1%20crmethod%3D2%26cksum%3De124b5149df23168f74dfdd0c739b089e8e56669&ECID-Context=1.0068t7huy8X6YNuMwa3j6G00AhK%5E00Lamy%3BkXjE')
     usuario = driver.find_element(By.ID, "username")
     usuario.send_keys(user_w)
     time.sleep(2)
@@ -74,22 +74,20 @@ for i in range(2): #número de grupos
     for o in range(len(Op)):
         driver.find_element(By.XPATH, "/html/body/form[2]/table[1]/tbody/tr/td[1]/select/option[{}]".format(Op[o])).click()
         # Archivo con las notas
-        ruta1 = r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 1s 2023\G{}\QG{}.xlsx'.format(G[i],G[i]) #Ruta archivo de notas 
-        # Lista actualizada 
-        ruta2 = r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 1s 2023\G{}\LG{}.xls'.format(G[i], G[i]) #Ruta lista actualizada del sia
+        ruta1 = r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 2s 2024\{}\Reporte_notas_{}.xlsx'.format(G[i],G[i])
+        ruta2 = r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 2s 2024\{}\L{}.xls'.format(G[i],G[i])
         df1 = pd.read_excel(ruta1)
         df2 = pd.read_excel(ruta2)
         df1 = df1.set_index('CORREO')
         df1[E[o]] = df1[E[o]].apply(lambda x: math.floor(10*x+0.5)/10)
         df2 = df2.set_index('CORREO')     
         df = df2.join(df1[E[o]]).fillna(0)
-        #df.to_excel(r'C:\Users\willi\OneDrive\Documentos\Cálculo diferencial\Semestre 1s 2023\G{}\QG{}.xlsx'.format(G[i]))
         niter = math.ceil(len(df)/25)
         driver.find_element(By.XPATH, "/html/body/form[2]/table[1]/tbody/tr/td[1]/select/option[{}]".format(Op[o])).click()
         c=0
         for j in range(niter):
             for k in range(25):
-                aux=df.iloc[c,1]
+                aux=df.iloc[c,2]
                 driver.find_element(By.XPATH, "/html/body/form[3]/table[2]/tbody/tr[{}]/td[5]/input".format(k+2)).send_keys(str(aux))
                 if (c+1 == len(df)):
                     break
