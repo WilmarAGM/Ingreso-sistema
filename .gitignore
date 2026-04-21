@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.vscode/
+chrome-win64/
+chrome-win64.zip
+chrome_proxy.exe
+L.xls
+temp_uploads/
+static/
+templates/
+app.py
+bot_engine.py
+requirements.txt
+Ingreso_Notas.py
+error_login.png
