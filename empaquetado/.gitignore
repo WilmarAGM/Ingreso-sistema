@@ -1,0 +1,10 @@
+build/
+dist/
+__pycache__/
+*.pyc
+*.pyo
+*.spec.bak
+venv/
+.env
+temp_uploads/
+error_login.png

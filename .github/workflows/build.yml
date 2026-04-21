@@ -1,0 +1,54 @@
+name: Build ejecutables
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            nombre: linux
+            ejecutable: empaquetado/dist/app
+            archivo_final: app-linux
+          - os: windows-latest
+            nombre: windows
+            ejecutable: empaquetado/dist/app.exe
+            archivo_final: app-windows.exe
+          - os: macos-latest
+            nombre: macos
+            ejecutable: empaquetado/dist/app
+            archivo_final: app-macos
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        working-directory: empaquetado
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: Construir ejecutable
+        working-directory: empaquetado
+        run: pyinstaller --noconfirm app.spec
+
+      - name: Renombrar ejecutable
+        shell: bash
+        run: mv "${{ matrix.ejecutable }}" "${{ matrix.archivo_final }}"
+
+      - name: Subir a la release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.archivo_final }}

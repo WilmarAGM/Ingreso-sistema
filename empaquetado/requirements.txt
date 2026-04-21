@@ -1,0 +1,8 @@
+Flask
+Flask-SocketIO
+pandas
+openpyxl
+xlrd>=2.0.1
+selenium
+webdriver-manager
+eventlet
