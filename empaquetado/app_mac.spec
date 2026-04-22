@@ -2,11 +2,11 @@
 
 a = Analysis(
     ['../launcher.py'],
-    pathex=['..'],
+    pathex=['..', '.'],
     binaries=[],
     datas=[
-        ('../templates', 'templates'),
-        ('../static', 'static'),
+        ('templates', 'templates'),
+        ('static', 'static'),
     ],
     hiddenimports=[
         'engineio.async_drivers.threading',
