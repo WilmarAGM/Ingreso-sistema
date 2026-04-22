@@ -27,10 +27,13 @@ def _find_chromedriver():
     import shutil
     candidates = [
         'chromedriver',
+        # macOS (Homebrew Intel / Apple Silicon)
+        '/usr/local/bin/chromedriver',
+        '/opt/homebrew/bin/chromedriver',
+        # Linux
         '/usr/bin/chromedriver',
         '/usr/lib/chromium-browser/chromedriver',
         '/snap/bin/chromium.chromedriver',
-        '/usr/local/bin/chromedriver',
     ]
     for name in candidates:
         found = shutil.which(name) or (name if os.path.exists(name) else None)

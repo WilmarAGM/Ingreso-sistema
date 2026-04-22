@@ -55,7 +55,7 @@ exe = EXE(
     upx=False,
     console=False,
     argv_emulation=True,
-    target_arch=None,
+    target_arch='universal2',
     codesign_identity=None,
     entitlements_file=None,
 )
