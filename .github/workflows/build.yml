@@ -54,9 +54,7 @@ jobs:
   # Disparar con: git tag v1.0.0-mac && git push origin v1.0.0-mac
   build-macos:
     if: contains(github.ref, '-mac')
-    runs-on: macos-14        # Apple Silicon — requerido para compilar universal2
-    env:
-      ARCHFLAGS: "-arch x86_64 -arch arm64"
+    runs-on: macos-13        # Intel x86_64 — nativo en Intel, Rosetta en Apple Silicon
     steps:
       - uses: actions/checkout@v4
 
