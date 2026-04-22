@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import shutil
 import time
 import math
 import logging
@@ -23,28 +22,20 @@ from selenium.common.exceptions import (
 logger = logging.getLogger(__name__)
 
 
-def _find_chrome_binary():
-    """Detecta el binario de Chrome/Chromium en Linux y macOS."""
+def _find_chromedriver():
+    """Encuentra el ejecutable de chromedriver en el sistema."""
+    import shutil
     candidates = [
-        # Linux — rutas comunes
-        '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable',
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-        '/snap/bin/chromium',
-        '/usr/local/bin/chromium',
-        # macOS
-        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        '/Applications/Chromium.app/Contents/MacOS/Chromium',
+        'chromedriver',
+        '/usr/bin/chromedriver',
+        '/usr/lib/chromium-browser/chromedriver',
+        '/snap/bin/chromium.chromedriver',
+        '/usr/local/bin/chromedriver',
     ]
-    # Buscar también en PATH
-    for name in ('google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium'):
-        found = shutil.which(name)
+    for name in candidates:
+        found = shutil.which(name) or (name if os.path.exists(name) else None)
         if found:
             return found
-    for path in candidates:
-        if os.path.exists(path):
-            return path
     return None
 
 
@@ -64,14 +55,12 @@ class GradeBot:
         self.options.add_experimental_option("excludeSwitches", ["enable-automation"])
         self.options.add_experimental_option('useAutomationExtension', False)
 
-        chrome_binary = _find_chrome_binary()
-        if chrome_binary:
-            logger.info(f"Chrome encontrado en: {chrome_binary}")
-            self.options.binary_location = chrome_binary
-        else:
-            logger.warning("No se encontró Chrome automáticamente; Selenium intentará con la ruta por defecto.")
+        chromedriver_path = _find_chromedriver()
+        service = Service(chromedriver_path) if chromedriver_path else Service()
+        if chromedriver_path:
+            logger.info(f"chromedriver encontrado en: {chromedriver_path}")
 
-        self.driver = webdriver.Chrome(options=self.options)
+        self.driver = webdriver.Chrome(service=service, options=self.options)
 
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
