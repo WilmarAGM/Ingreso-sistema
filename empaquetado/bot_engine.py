@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import shutil
 import time
 import math
 import logging
@@ -18,9 +19,34 @@ from selenium.common.exceptions import (
     NoAlertPresentException,
     WebDriverException,
 )
-# from webdriver_manager.chrome import ChromeDriverManager
 
 logger = logging.getLogger(__name__)
+
+
+def _find_chrome_binary():
+    """Detecta el binario de Chrome/Chromium en Linux y macOS."""
+    candidates = [
+        # Linux — rutas comunes
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/snap/bin/chromium',
+        '/usr/local/bin/chromium',
+        # macOS
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    ]
+    # Buscar también en PATH
+    for name in ('google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium'):
+        found = shutil.which(name)
+        if found:
+            return found
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    return None
+
 
 class GradeBot:
     def __init__(self, headless=True):
@@ -38,7 +64,13 @@ class GradeBot:
         self.options.add_experimental_option("excludeSwitches", ["enable-automation"])
         self.options.add_experimental_option('useAutomationExtension', False)
 
-        # self.service = Service(ChromeDriverManager().install())
+        chrome_binary = _find_chrome_binary()
+        if chrome_binary:
+            logger.info(f"Chrome encontrado en: {chrome_binary}")
+            self.options.binary_location = chrome_binary
+        else:
+            logger.warning("No se encontró Chrome automáticamente; Selenium intentará con la ruta por defecto.")
+
         self.driver = webdriver.Chrome(options=self.options)
 
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
