@@ -15,3 +15,14 @@ bot_engine.py
 requirements.txt
 Ingreso_Notas.py
 error_login.png
+
+# Artefactos de build
+empaquetado/build/
+empaquetado/build_linux/
+empaquetado/build_mac/
+empaquetado/dist/
+empaquetado/dist_linux/
+empaquetado/dist_mac/
+empaquetado/IngresoNotas-Linux/
+empaquetado/IngresoNotas-Mac/
+empaquetado/*.zip

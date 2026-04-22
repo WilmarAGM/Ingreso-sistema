@@ -6,59 +6,98 @@ on:
       - 'v*'
 
 jobs:
+
+  # ── LINUX ──────────────────────────────────────────────────────────────────
+  # Disparar con: git tag v1.0.0-linux && git push origin v1.0.0-linux
+  # (o cualquier tag sin -mac ni -win)
   build-linux:
-    if: contains(github.ref, '-linux') || (!contains(github.ref, '-win') && !contains(github.ref, '-mac'))
+    if: contains(github.ref, '-linux') || (!contains(github.ref, '-mac') && !contains(github.ref, '-win'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Instalar dependencias
-        working-directory: empaquetado
-        run: pip install pyinstaller && pip install -r requirements.txt
-      - name: Construir
-        working-directory: empaquetado
-        run: pyinstaller --noconfirm app.spec
+        run: |
+          pip install pyinstaller
+          pip install -r empaquetado/requirements.txt
+
+      - name: Construir con PyInstaller (onedir)
+        run: |
+          pyinstaller --noconfirm \
+            empaquetado/app_linux.spec \
+            --distpath empaquetado/dist_linux \
+            --workpath empaquetado/build_linux
+
+      - name: Preparar carpeta de entrega
+        run: |
+          mkdir -p empaquetado/IngresoNotas-Linux
+          cp -r empaquetado/dist_linux/IngresoNotas empaquetado/IngresoNotas-Linux/IngresoNotas.app
+          cp empaquetado/instalar_linux.sh empaquetado/IngresoNotas-Linux/instalar.sh
+          chmod +x empaquetado/IngresoNotas-Linux/IngresoNotas.app/IngresoNotas
+          chmod +x empaquetado/IngresoNotas-Linux/instalar.sh
+
+      - name: Crear ZIP
+        run: |
+          cd empaquetado
+          zip -r IngresoNotas-Linux.zip IngresoNotas-Linux/
+
       - name: Subir a release
         uses: softprops/action-gh-release@v2
         with:
-          files: empaquetado/dist/app
+          files: empaquetado/IngresoNotas-Linux.zip
 
-  build-windows:
-    if: contains(github.ref, '-win')
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Instalar dependencias
-        working-directory: empaquetado
-        run: pip install pyinstaller && pip install -r requirements.txt
-      - name: Construir
-        working-directory: empaquetado
-        run: pyinstaller --noconfirm app.spec
-      - name: Subir a release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: empaquetado/dist/app.exe
-
+  # ── macOS ──────────────────────────────────────────────────────────────────
+  # Disparar con: git tag v1.0.0-mac && git push origin v1.0.0-mac
   build-macos:
     if: contains(github.ref, '-mac')
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Instalar dependencias
-        working-directory: empaquetado
-        run: pip install pyinstaller && pip install -r requirements.txt
-      - name: Construir
-        working-directory: empaquetado
-        run: pyinstaller --noconfirm app.spec
+        run: |
+          pip install pyinstaller
+          pip install -r empaquetado/requirements.txt
+
+      - name: Construir con PyInstaller (app bundle)
+        run: |
+          pyinstaller --noconfirm \
+            empaquetado/app_mac.spec \
+            --distpath empaquetado/dist_mac \
+            --workpath empaquetado/build_mac
+
+      - name: Crear DMG y carpeta de entrega
+        run: |
+          mkdir -p empaquetado/IngresoNotas-Mac
+          cp -r empaquetado/dist_mac/IngresoNotas.app empaquetado/IngresoNotas-Mac/IngresoNotas.app
+
+          # DMG con drag-to-Applications
+          TEMP_DMG=$(mktemp -d)
+          cp -r empaquetado/IngresoNotas-Mac/IngresoNotas.app "$TEMP_DMG/IngresoNotas.app"
+          ln -s /Applications "$TEMP_DMG/Applications"
+
+          hdiutil create \
+            -volname "Ingreso de Notas" \
+            -srcfolder "$TEMP_DMG" \
+            -ov -format UDZO \
+            empaquetado/IngresoNotas-Mac/instalar.dmg
+
+          rm -rf "$TEMP_DMG"
+
+      - name: Crear ZIP
+        run: |
+          cd empaquetado
+          zip -r IngresoNotas-Mac.zip IngresoNotas-Mac/
+
       - name: Subir a release
         uses: softprops/action-gh-release@v2
         with:
-          files: empaquetado/dist/app
+          files: empaquetado/IngresoNotas-Mac.zip
