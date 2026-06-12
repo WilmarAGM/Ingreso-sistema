@@ -58,10 +58,15 @@ class GradeBot:
         self.options.add_experimental_option("excludeSwitches", ["enable-automation"])
         self.options.add_experimental_option('useAutomationExtension', False)
 
-        chromedriver_path = _find_chromedriver()
-        service = Service(chromedriver_path) if chromedriver_path else Service()
-        if chromedriver_path:
-            logger.info(f"chromedriver encontrado en: {chromedriver_path}")
+        try:
+            from webdriver_manager.chrome import ChromeDriverManager
+            driver_path = ChromeDriverManager().install()
+            service = Service(driver_path)
+            logger.info(f"webdriver_manager instaló/encontró chromedriver en: {driver_path}")
+        except Exception as e:
+            logger.warning(f"Error con webdriver_manager: {e}. Se intentará con _find_chromedriver o Selenium Manager.")
+            chromedriver_path = _find_chromedriver()
+            service = Service(chromedriver_path) if chromedriver_path else Service()
 
         self.driver = webdriver.Chrome(service=service, options=self.options)
 

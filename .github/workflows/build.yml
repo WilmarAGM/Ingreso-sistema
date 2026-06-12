@@ -54,7 +54,7 @@ jobs:
   # Disparar con: git tag v1.0.0-mac && git push origin v1.0.0-mac
   build-macos:
     if: contains(github.ref, '-mac')
-    runs-on: macos-13        # Intel x86_64 — nativo en Intel, Rosetta en Apple Silicon
+    runs-on: macos-12        # Intel x86_64 — nativo en Intel, Rosetta en Apple Silicon
     steps:
       - uses: actions/checkout@v4
 
@@ -101,3 +101,39 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: empaquetado/IngresoNotas-Mac.zip
+
+  # ── WINDOWS ────────────────────────────────────────────────────────────────
+  # Disparar con: git tag v1.0.0-win && git push origin v1.0.0-win
+  build-windows:
+    if: contains(github.ref, '-win') || (!contains(github.ref, '-mac') && !contains(github.ref, '-linux'))
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install pyinstaller
+          pip install -r empaquetado/requirements.txt
+
+      - name: Construir con PyInstaller
+        run: |
+          pyinstaller --noconfirm empaquetado/app.spec
+
+      - name: Preparar carpeta de entrega
+        run: |
+          mkdir empaquetado/IngresoNotas-Windows
+          copy empaquetado\dist\app.exe empaquetado\IngresoNotas-Windows\app.exe
+          copy Manual_Windows.md empaquetado\IngresoNotas-Windows\Manual_Windows.md
+
+      - name: Crear ZIP
+        run: |
+          Compress-Archive -Path empaquetado\IngresoNotas-Windows\* -DestinationPath empaquetado\IngresoNotas-Windows.zip
+
+      - name: Subir a release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: empaquetado/IngresoNotas-Windows.zip
