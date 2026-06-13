@@ -1017,8 +1017,16 @@
             const resp = await fetch('/process', { method: 'POST', body: fd });
             const data = await resp.json();
             if (data.success) startPolling();
-            else { appendLog(`❌ Error al iniciar: ${data.error}`); resetStartBtn(); }
-        } catch(e) { appendLog('❌ Error de red.'); resetStartBtn(); }
+            else { 
+                alert(`Error al iniciar el proceso:\n${data.error}`);
+                appendLog(`❌ Error al iniciar: ${data.error}`); 
+                resetStartBtn(); 
+            }
+        } catch(e) { 
+            alert(`Error de conexión con el servidor interno:\n${e}`);
+            appendLog('❌ Error de red.'); 
+            resetStartBtn(); 
+        }
     }
 
     // ── POLLING ──
@@ -1032,7 +1040,10 @@
                 if (data.done) {
                     stopPolling();
                     if (data.result?.success) { renderMultiResults(data.result.stats_list); showStep(4); }
-                    else { appendLog('❌ El proceso terminó sin resultados.'); resetStartBtn(); }
+                    else { 
+                        appendLog('❌ El proceso terminó sin resultados o con error.'); 
+                        resetStartBtn(true); 
+                    }
                 }
             } catch(e) { console.warn('poll error:', e); }
         }, 1500);
@@ -1044,7 +1055,7 @@
         if (!pollInterval) return;
         stopPolling();
         if (data.success && data.stats_list) { renderMultiResults(data.stats_list); showStep(4); }
-        else resetStartBtn();
+        else resetStartBtn(true);
     });
 
     // ── STEP 4: RESULTADOS ──
@@ -1125,11 +1136,13 @@
         setTimeout(() => location.reload(), 3000);
     }
 
-    function resetStartBtn() {
+    function resetStartBtn(keepPanel = false) {
         const btn = document.getElementById('startBtn');
         btn.disabled = false;
         btn.innerHTML = `Iniciar procesamiento <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-        document.getElementById('processingPanel').classList.remove('on');
+        if (!keepPanel) {
+            document.getElementById('processingPanel').classList.remove('on');
+        }
     }
 
     function togglePasswordVisibility() {

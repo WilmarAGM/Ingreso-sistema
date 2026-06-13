@@ -8,6 +8,7 @@ import logging
 import threading
 import io
 import queue
+import uuid
 import tempfile
 import multiprocessing
 import webbrowser
@@ -256,16 +257,17 @@ def process():
     except json.JSONDecodeError:
         return jsonify({"success": False, "error": "Formato de mapeo inválido"})
 
-    temp_dir = os.path.join(tempfile.gettempdir(), "IngresoNotas_Temp")
-    os.makedirs(temp_dir, exist_ok=True)
-    safe_filename = secure_filename(file.filename)
-    if not safe_filename:
-        safe_filename = "upload_file"
-    filename = f"{sid}_{safe_filename}"
-    file_path = os.path.join(temp_dir, filename)
-    file.save(file_path)
-
     try:
+        temp_dir = os.path.join(tempfile.gettempdir(), "IngresoNotas_Temp")
+        os.makedirs(temp_dir, exist_ok=True)
+        safe_filename = secure_filename(file.filename)
+        if not safe_filename:
+            safe_filename = "upload_file"
+        unique_id = uuid.uuid4().hex[:8]
+        filename = f"{sid}_{unique_id}_{safe_filename}"
+        file_path = os.path.join(temp_dir, filename)
+        file.save(file_path)
+
         ext = os.path.splitext(file.filename)[1].lower()
         if ext == '.csv':
             df = pd.read_csv(file_path)
