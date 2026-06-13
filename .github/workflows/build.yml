@@ -121,7 +121,8 @@ jobs:
 
       - name: Construir con PyInstaller
         run: |
-          pyinstaller --noconfirm empaquetado/app.spec
+          cd empaquetado
+          pyinstaller --noconfirm app.spec
 
       - name: Preparar carpeta de entrega
         run: |
