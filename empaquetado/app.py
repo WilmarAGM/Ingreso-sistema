@@ -8,6 +8,8 @@ import logging
 import threading
 import io
 import queue
+import tempfile
+import multiprocessing
 import webbrowser
 from datetime import timedelta
 from threading import Timer
@@ -253,7 +255,7 @@ def process():
     except json.JSONDecodeError:
         return jsonify({"success": False, "error": "Formato de mapeo inválido"})
 
-    temp_dir = os.path.join(os.getcwd(), "temp_uploads")
+    temp_dir = os.path.join(tempfile.gettempdir(), "IngresoNotas_Temp")
     os.makedirs(temp_dir, exist_ok=True)
     filename = f"{sid}_{file.filename}"
     file_path = os.path.join(temp_dir, filename)
@@ -372,6 +374,7 @@ def open_browser():
 
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     # Solo abrimos el navegador si no estamos en modo reloader de Flask
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         Timer(1, open_browser).start()
