@@ -126,13 +126,16 @@ class GradeBot:
             raise
 
     def get_groups_list(self):
+        self._group_links = {}
         rows = self.driver.find_elements(By.XPATH, "//form//table//tr")
         groups = []
         for i, row in enumerate(rows[1:]):  # skip header
             try:
-                row.find_element(By.TAG_NAME, "a")
+                link = row.find_element(By.TAG_NAME, "a")
+                g_id = i + 2
+                self._group_links[g_id] = link.get_attribute("href")
                 groups.append({
-                    "id": i + 2,
+                    "id": g_id,
                     "name": row.text.strip()
                 })
             except NoSuchElementException:
@@ -140,13 +143,28 @@ class GradeBot:
         return groups
 
     def enter_group(self, group_id):
-        ruta_grupo = f"//form//table//tr[{group_id}]//a"
-        self.wait.until(EC.element_to_be_clickable((By.XPATH, ruta_grupo))).click()
+        g_id = int(group_id)
+        if hasattr(self, '_group_links') and g_id in self._group_links:
+            href = self._group_links[g_id]
+            logger.info(f"Navegando al grupo usando href seguro")
+            if href and href.startswith("javascript:"):
+                self.driver.execute_script(href.replace("javascript:", ""))
+            else:
+                self.driver.get(href)
+        else:
+            logger.warning(f"Fallback a XPATH antiguo para grupo {group_id}")
+            ruta_grupo = f"//form//table//tr[{group_id}]//a"
+            self.wait.until(EC.element_to_be_clickable((By.XPATH, ruta_grupo))).click()
 
     def get_grading_options(self):
-        select = self.wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/form[2]/table[1]/tbody/tr/td[1]/select")))
-        options = select.find_elements(By.TAG_NAME, "option")
-        return [{"id": i + 1, "name": opt.text.strip()} for i, opt in enumerate(options)]
+        try:
+            select = self.wait.until(EC.presence_of_element_located((By.XPATH, "//select")))
+            options = select.find_elements(By.TAG_NAME, "option")
+            return [{"id": i + 1, "name": opt.text.strip()} for i, opt in enumerate(options)]
+        except TimeoutException:
+            select = self.wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/form[2]/table[1]/tbody/tr/td[1]/select")))
+            options = select.find_elements(By.TAG_NAME, "option")
+            return [{"id": i + 1, "name": opt.text.strip()} for i, opt in enumerate(options)]
 
     def start_grading(self, exam_mappings, df, log_callback):
         """
