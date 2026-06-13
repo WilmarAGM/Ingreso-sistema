@@ -15,6 +15,7 @@ from datetime import timedelta
 from threading import Timer
 
 from flask import Flask, render_template, request, jsonify, session
+from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, join_room
 from bot_engine import GradeBot
 import pandas as pd
@@ -226,9 +227,9 @@ def get_columns():
         else:
             return jsonify({"success": False, "error": "Formato no soportado"})
 
-        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-        numeric_cols = [c for c in numeric_cols if str(c).lower() != 'documento']
-        return jsonify({"success": True, "columns": numeric_cols})
+        exclude_cols = ['documento', 'nombre', 'nombres', 'apellido', 'apellidos', 'programa', 'correo']
+        available_cols = [c for c in df.columns.tolist() if str(c).lower() not in exclude_cols]
+        return jsonify({"success": True, "columns": available_cols})
     except Exception as e:
         logger.error(f"Error al leer columnas: {e}", exc_info=True)
         return jsonify({"success": False, "error": str(e)})
@@ -257,7 +258,10 @@ def process():
 
     temp_dir = os.path.join(tempfile.gettempdir(), "IngresoNotas_Temp")
     os.makedirs(temp_dir, exist_ok=True)
-    filename = f"{sid}_{file.filename}"
+    safe_filename = secure_filename(file.filename)
+    if not safe_filename:
+        safe_filename = "upload_file"
+    filename = f"{sid}_{safe_filename}"
     file_path = os.path.join(temp_dir, filename)
     file.save(file_path)
 

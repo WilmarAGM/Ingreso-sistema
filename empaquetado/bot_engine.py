@@ -192,7 +192,17 @@ class GradeBot:
                 continue
 
             exam_df = df.copy()
-            exam_df[exam_col] = exam_df[exam_col].apply(lambda x: math.floor(10 * float(x) + 0.5) / 10 if pd.notnull(x) else 0.0)
+            def parse_grade(x):
+                if pd.isnull(x):
+                    return 0.0
+                try:
+                    if isinstance(x, str):
+                        x = x.replace(',', '.')
+                    return math.floor(10 * float(x) + 0.5) / 10
+                except (ValueError, TypeError):
+                    return 0.0
+            
+            exam_df[exam_col] = exam_df[exam_col].apply(parse_grade)
 
             stats = {
                 "name": exam_name,
