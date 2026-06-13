@@ -126,14 +126,12 @@ class GradeBot:
             raise
 
     def get_groups_list(self):
-        self._group_links = {}
         rows = self.driver.find_elements(By.XPATH, "//form//table//tr")
         groups = []
         for i, row in enumerate(rows[1:]):  # skip header
             try:
-                link = row.find_element(By.TAG_NAME, "a")
+                row.find_element(By.TAG_NAME, "a")
                 g_id = i + 2
-                self._group_links[g_id] = link.get_attribute("href")
                 groups.append({
                     "id": g_id,
                     "name": row.text.strip()
@@ -143,18 +141,11 @@ class GradeBot:
         return groups
 
     def enter_group(self, group_id):
-        g_id = int(group_id)
-        if hasattr(self, '_group_links') and g_id in self._group_links:
-            href = self._group_links[g_id]
-            logger.info(f"Navegando al grupo usando href seguro")
-            if href and href.startswith("javascript:"):
-                self.driver.execute_script(href.replace("javascript:", ""))
-            else:
-                self.driver.get(href)
-        else:
-            logger.warning(f"Fallback a XPATH antiguo para grupo {group_id}")
-            ruta_grupo = f"//form//table//tr[{group_id}]//a"
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, ruta_grupo))).click()
+        # Usamos paréntesis para que el índice sea global (el enésimo <tr> de TODA la página)
+        # Esto soluciona el problema de múltiples tablas
+        ruta_grupo = f"(//form//table//tr)[{group_id}]//a"
+        logger.info(f"Navegando al grupo usando XPATH global: {ruta_grupo}")
+        self.wait.until(EC.element_to_be_clickable((By.XPATH, ruta_grupo))).click()
 
     def get_grading_options(self):
         try:
